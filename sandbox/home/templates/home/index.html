@@ -1,0 +1,42 @@
+{% extends "home/base.html" %}
+
+{% block title %}Início — django-sabia-auth sandbox{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 text-center">
+    <h1 class="display-5 mb-3">🐦 django-sabia-auth</h1>
+    <p class="lead text-muted">Ambiente de teste funcional do pacote de autenticação OAuth2 com o Sabiá.</p>
+    <hr>
+
+    {% if user.is_authenticated %}
+      <div class="alert alert-success">
+        <strong>✅ Autenticado!</strong>
+        Você está logado como <strong>{{ user.get_full_name|default:user.username }}</strong>
+        (username: <code>{{ user.username }}</code>).
+      </div>
+      <a href="{% url 'dashboard' %}" class="btn btn-primary me-2">Ir para o Dashboard</a>
+      <form method="post" action="{% url 'logout' %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary">Sair</button>
+      </form>
+    {% else %}
+      <div class="alert alert-secondary">
+        Você <strong>não está autenticado</strong>. Use o botão abaixo para fazer login via Sabiá.
+      </div>
+      <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Entrar com o Sabiá</a>
+    {% endif %}
+
+    <hr class="mt-5">
+    <h5 class="text-muted">Fluxo OAuth2</h5>
+    <ol class="text-start">
+      <li>Clique em <em>Entrar com o Sabiá</em> — você é redirecionado para <code>/login/</code>.</li>
+      <li>Na página de login, clique no botão <em>Entrar com o Sabiá</em>.</li>
+      <li>O pacote gera um <code>state</code>, salva na sessão e redireciona para o servidor Sabiá.</li>
+      <li>Após autenticar no Sabiá, o servidor retorna para <code>/auth/sabia/callback/</code>.</li>
+      <li>O pacote valida o <code>state</code>, troca o código pelo token, busca o perfil e cria/atualiza o usuário Django.</li>
+      <li>Você é redirecionado para <code>/dashboard/</code> já autenticado.</li>
+    </ol>
+  </div>
+</div>
+{% endblock %}
