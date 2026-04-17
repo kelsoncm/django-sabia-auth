@@ -61,7 +61,12 @@ class SabiaCallbackView(View):
                         require_https=request.is_secure(),
                     )
                 ):
-                    return HttpResponseRedirect(safe_next_url)
+                    local_redirect_url = parsed_next.path or "/"
+                    if parsed_next.query:
+                        local_redirect_url = f"{local_redirect_url}?{parsed_next.query}"
+                    if parsed_next.fragment:
+                        local_redirect_url = f"{local_redirect_url}#{parsed_next.fragment}"
+                    return HttpResponseRedirect(local_redirect_url)
                 return redirect(settings.LOGIN_REDIRECT_URL)
             else:
                 messages.error(request, "Authentication failed. Please try again.")
