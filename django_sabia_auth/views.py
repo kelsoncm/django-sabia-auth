@@ -50,6 +50,10 @@ class SabiaCallbackView(View):
                 next_url = request.GET.get("next", "")
                 safe_next_url = next_url.replace("\\", "")
                 parsed_next = urlsplit(safe_next_url)
+                allowed_next_paths = {
+                    "/",
+                    settings.LOGIN_REDIRECT_URL,
+                }
                 if (
                     safe_next_url
                     and safe_next_url.startswith("/")
@@ -60,6 +64,7 @@ class SabiaCallbackView(View):
                         allowed_hosts={request.get_host()},
                         require_https=request.is_secure(),
                     )
+                    and parsed_next.path in allowed_next_paths
                 ):
                     local_redirect_url = parsed_next.path or "/"
                     if parsed_next.query:
