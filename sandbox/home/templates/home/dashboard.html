@@ -1,0 +1,39 @@
+{% extends "home/base.html" %}
+
+{% block title %}Dashboard — django-sabia-auth sandbox{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h2>Dashboard <span class="badge bg-success fs-6">Autenticado</span></h2>
+    <p class="text-muted">Esta página só é acessível para usuários autenticados via <code>@login_required</code>.</p>
+
+    <div class="card mb-4">
+      <div class="card-header">👤 Dados do usuário Django</div>
+      <div class="card-body">
+        <table class="table table-sm mb-0">
+          <tbody>
+            <tr><th scope="row">ID</th><td>{{ user.pk }}</td></tr>
+            <tr><th scope="row">Username (CPF)</th><td><code>{{ user.username }}</code></td></tr>
+            <tr><th scope="row">Nome</th><td>{{ user.get_full_name|default:"—" }}</td></tr>
+            <tr><th scope="row">E-mail</th><td>{{ user.email|default:"—" }}</td></tr>
+            <tr><th scope="row">Superusuário</th><td>{{ user.is_superuser|yesno:"Sim,Não" }}</td></tr>
+            <tr><th scope="row">Staff</th><td>{{ user.is_staff|yesno:"Sim,Não" }}</td></tr>
+            <tr><th scope="row">Ativo</th><td>{{ user.is_active|yesno:"Sim,Não" }}</td></tr>
+            <tr><th scope="row">Último login</th><td>{{ user.last_login|default:"—" }}</td></tr>
+            <tr><th scope="row">Criado em</th><td>{{ user.date_joined }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="/" class="btn btn-outline-secondary">← Início</a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">Sair</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
