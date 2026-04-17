@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from .exceptions import SabiaStateMismatchError, SabiaTokenError, SabiaUserInfoError
@@ -44,8 +46,14 @@ class SabiaCallbackView(View):
             user = authenticate(request, sabia_user_info=user_info)
             if user is not None:
                 login(request, user, backend="django_sabia_auth.backends.SabiaAuthBackend")
-                next_url = request.GET.get("next") or settings.LOGIN_REDIRECT_URL
-                return redirect(next_url)
+                next_url = request.GET.get("next", "")
+                if next_url and url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    return redirect(next_url)
+                return redirect(settings.LOGIN_REDIRECT_URL)
             else:
                 messages.error(request, "Authentication failed. Please try again.")
                 return redirect(settings.LOGIN_URL)
