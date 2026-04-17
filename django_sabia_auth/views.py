@@ -48,18 +48,20 @@ class SabiaCallbackView(View):
             if user is not None:
                 login(request, user, backend="django_sabia_auth.backends.SabiaAuthBackend")
                 next_url = request.GET.get("next", "")
-                parsed_next = urlsplit(next_url)
+                safe_next_url = next_url.replace("\\", "")
+                parsed_next = urlsplit(safe_next_url)
                 if (
-                    next_url
+                    safe_next_url
+                    and safe_next_url.startswith("/")
                     and not parsed_next.scheme
                     and not parsed_next.netloc
                     and url_has_allowed_host_and_scheme(
-                        url=next_url,
+                        url=safe_next_url,
                         allowed_hosts={request.get_host()},
                         require_https=request.is_secure(),
                     )
                 ):
-                    return HttpResponseRedirect(next_url)
+                    return HttpResponseRedirect(safe_next_url)
                 return redirect(settings.LOGIN_REDIRECT_URL)
             else:
                 messages.error(request, "Authentication failed. Please try again.")
