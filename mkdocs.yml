@@ -1,0 +1,30 @@
+site_name: django-sabia-auth
+site_description: Django OAuth2 authentication backend for Sabiá (Brazil's SUS identity provider)
+site_author: kelsoncm
+repo_url: https://github.com/kelsoncm/django-sabia-auth
+repo_name: kelsoncm/django-sabia-auth
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.annotate
+  palette:
+    primary: green
+    accent: teal
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - Usage: usage.md
+  - API Reference: api-reference.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true
