@@ -120,6 +120,91 @@ def test_api_list_users(api_client):
 
 
 @rsps_lib.activate
+def test_exchange_code_request_exception(oauth_client):
+    import requests as req_lib
+    rsps_lib.add(rsps_lib.POST, f"{BASE_URL}/oauth/token/", body=req_lib.ConnectionError())
+    with pytest.raises(SabiaTokenError):
+        oauth_client.exchange_code_for_token("code")
+
+
+@rsps_lib.activate
+def test_get_user_info_request_exception(oauth_client):
+    import requests as req_lib
+    rsps_lib.add(rsps_lib.POST, f"{BASE_URL}/api/perfil/dados/", body=req_lib.ConnectionError())
+    with pytest.raises(SabiaUserInfoError):
+        oauth_client.get_user_info("tok")
+
+
+@rsps_lib.activate
+def test_api_get_user_raises_on_other_http_error(api_client):
+    rsps_lib.add(rsps_lib.GET, f"{API_URL}/usuarios/12345678901/", json={}, status=500)
+    with pytest.raises(SabiaAPIError):
+        api_client.get_user("12345678901")
+
+
+@rsps_lib.activate
+def test_api_get_user_request_exception(api_client):
+    import requests as req_lib
+    rsps_lib.add(rsps_lib.GET, f"{API_URL}/usuarios/12345678901/", body=req_lib.ConnectionError())
+    with pytest.raises(SabiaAPIError):
+        api_client.get_user("12345678901")
+
+
+@rsps_lib.activate
+def test_api_list_users_raises_on_403(api_client):
+    rsps_lib.add(rsps_lib.GET, f"{API_URL}/usuarios/", json={}, status=403)
+    with pytest.raises(SabiaAPIError) as exc_info:
+        api_client.list_users(["11111111111"])
+    assert exc_info.value.status_code == 403
+
+
+@rsps_lib.activate
+def test_api_list_users_raises_on_http_error(api_client):
+    rsps_lib.add(rsps_lib.GET, f"{API_URL}/usuarios/", json={}, status=500)
+    with pytest.raises(SabiaAPIError):
+        api_client.list_users(["11111111111"])
+
+
+@rsps_lib.activate
+def test_api_create_user_success_201(api_client):
+    rsps_lib.add(rsps_lib.POST, f"{API_URL}/usuarios/", json={"cpf": "11111111111"}, status=201)
+    created, data = api_client.create_user("11111111111", "a@b.com", "Ana", "F", "1990-01-01")
+    assert created is True
+    assert data["cpf"] == "11111111111"
+
+
+@rsps_lib.activate
+def test_api_create_user_already_exists_200(api_client):
+    rsps_lib.add(rsps_lib.POST, f"{API_URL}/usuarios/", json={"cpf": "11111111111"}, status=200)
+    created, data = api_client.create_user("11111111111", "a@b.com", "Ana", "F", "1990-01-01")
+    assert created is False
+
+
+@rsps_lib.activate
+def test_api_create_user_raises_on_403(api_client):
+    rsps_lib.add(rsps_lib.POST, f"{API_URL}/usuarios/", json={}, status=403)
+    with pytest.raises(SabiaAPIError) as exc_info:
+        api_client.create_user("11111111111", "a@b.com", "Ana", "F", "1990-01-01")
+    assert exc_info.value.status_code == 403
+
+
+@rsps_lib.activate
+def test_api_create_user_raises_on_400(api_client):
+    rsps_lib.add(rsps_lib.POST, f"{API_URL}/usuarios/", body="CPF inválido", status=400)
+    with pytest.raises(SabiaAPIError) as exc_info:
+        api_client.create_user("00000000000", "a@b.com", "Ana", "F", "1990-01-01")
+    assert exc_info.value.status_code == 400
+
+
+@rsps_lib.activate
+def test_api_create_user_request_exception(api_client):
+    import requests as req_lib
+    rsps_lib.add(rsps_lib.POST, f"{API_URL}/usuarios/", body=req_lib.ConnectionError())
+    with pytest.raises(SabiaAPIError):
+        api_client.create_user("11111111111", "a@b.com", "Ana", "F", "1990-01-01")
+
+
+@rsps_lib.activate
 def test_api_create_user_returns_created_true(api_client):
     rsps_lib.add(
         rsps_lib.POST,

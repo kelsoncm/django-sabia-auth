@@ -60,17 +60,6 @@ export SABIA_REDIRECT_URI="http://localhost:8000/auth/sabia/callback/"
 ```bash
 cd sandbox
 python manage.py migrate
-```
-
-Opcionalmente, crie um superusuário para acessar o admin Django:
-
-```bash
-python manage.py createsuperuser
-```
-
-### 4. Inicie o servidor
-
-```bash
 python manage.py runserver
 ```
 

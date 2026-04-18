@@ -1,50 +1,49 @@
 from django.contrib.auth import get_user_model
 
+from .utils import apply_user_attr_map, get_sabia_settings
+
 
 class SabiaAuthBackend:
     """
     Django authentication backend for Sabiá OAuth2.
 
     Looks up or creates a Django user based on the profile info returned by Sabiá.
-    The CPF is used as the Django username.
+
+    By default the CPF is used as the Django ``username``. Customize the field
+    mapping via ``SABIA_USER_LOOKUP_FIELD`` and ``SABIA_USER_ATTR_MAP`` in your
+    Django settings — see the documentation for details.
     """
 
     def authenticate(self, request, sabia_user_info=None, **kwargs):
         if sabia_user_info is None:
             return None
 
+        cfg = get_sabia_settings()
+        lookup_field = cfg["user_lookup_field"]
+        attr_map = cfg["user_attr_map"]
+
         User = get_user_model()
-        cpf = sabia_user_info.get("cpf")
-        if not cpf:
+        attrs = apply_user_attr_map(sabia_user_info, attr_map)
+
+        lookup_value = attrs.get(lookup_field)
+        if not lookup_value:
             return None
 
-        email = sabia_user_info.get("email", "")
-        name = sabia_user_info.get("name", "")
-        name_parts = name.split(" ", 1)
-        first_name = name_parts[0] if name_parts else ""
-        last_name = name_parts[1] if len(name_parts) > 1 else ""
+        # Separate the lookup key from the remaining defaults.
+        defaults = {k: v for k, v in attrs.items() if k != lookup_field}
+        defaults.setdefault("is_active", True)
 
         user, created = User.objects.get_or_create(
-            username=cpf,
-            defaults={
-                "email": email,
-                "first_name": first_name,
-                "last_name": last_name,
-                "is_active": True,
-            },
+            **{lookup_field: lookup_value},
+            defaults=defaults,
         )
 
         if not created:
             changed = False
-            if user.email != email:
-                user.email = email
-                changed = True
-            if user.first_name != first_name:
-                user.first_name = first_name
-                changed = True
-            if user.last_name != last_name:
-                user.last_name = last_name
-                changed = True
+            for field, value in defaults.items():
+                if getattr(user, field, None) != value:
+                    setattr(user, field, value)
+                    changed = True
             if not user.is_active:
                 user.is_active = True
                 changed = True

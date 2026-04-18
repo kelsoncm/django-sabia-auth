@@ -69,3 +69,22 @@ def test_get_user_returns_user(backend, sabia_user_info):
 def test_get_user_returns_none_for_invalid_id(backend):
     result = backend.get_user(999999)
     assert result is None
+
+
+@pytest.mark.django_db
+def test_authenticate_returns_none_when_lookup_value_missing(backend):
+    """No CPF in user_info → lookup_value is None → return None."""
+    user = backend.authenticate(None, sabia_user_info={"email": "x@example.com"})
+    assert user is None
+
+
+@pytest.mark.django_db
+def test_authenticate_reactivates_inactive_user(backend, sabia_user_info):
+    """Existing inactive user should be reactivated on next login."""
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    User.objects.create_user(username="98765432100", email="old@example.com", is_active=False)
+
+    user = backend.authenticate(None, sabia_user_info=sabia_user_info)
+    assert user is not None
+    assert user.is_active is True

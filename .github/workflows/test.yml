@@ -49,10 +49,13 @@ jobs:
           pip install "Django~=${{ matrix.django-version }}"
 
       - name: Run tests
-        run: pytest --cov=django_sabia_auth --cov-report=xml
+        run: pytest --cov=django_sabia_auth --cov-report=xml --cov-fail-under=97
 
       - name: Upload coverage to Codecov
+        if: ${{ !matrix.experimental }}
         uses: codecov/codecov-action@v6
         with:
-          file: ./coverage.xml
-        continue-on-error: true
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: python${{ matrix.python-version }}-django${{ matrix.django-version }}
+          fail_ci_if_error: false

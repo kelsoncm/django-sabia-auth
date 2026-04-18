@@ -1,8 +1,15 @@
 # django-sabia-auth
 
+![PyPI Version](https://img.shields.io/pypi/v/django-sabia-auth)
 [![PyPI version](https://badge.fury.io/py/django-sabia-auth.svg)](https://pypi.org/project/django-sabia-auth/)
 [![Tests](https://github.com/kelsoncm/django-sabia-auth/actions/workflows/test.yml/badge.svg)](https://github.com/kelsoncm/django-sabia-auth/actions/workflows/test.yml)
 [![Coverage](https://codecov.io/gh/kelsoncm/django-sabia-auth/branch/main/graph/badge.svg)](https://codecov.io/gh/kelsoncm/django-sabia-auth)
+[![Python CI and PyPI Deploy](https://github.com/kelsoncm/django-sabia-auth/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/kelsoncm/django-sabia-auth/actions/workflows/pythonapp.yml)
+[![Python Versions](https://img.shields.io/pypi/pyversions/django-dsgovbr.svg)](https://pypi.org/project/django-dsgovbr/)
+[![Django Versions](https://img.shields.io/badge/django-5.2-blue.svg)](https://www.djangoproject.com/)
+[![Django Versions](https://img.shields.io/badge/django-6.0-blue.svg)](https://www.djangoproject.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 Django OAuth2 authentication backend for **Sabiá**, Brazil's SUS (Sistema Único de Saúde) identity provider, hosted at [login.sabia.ufrn.br](https://login.sabia.ufrn.br).
 

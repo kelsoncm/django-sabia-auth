@@ -86,3 +86,67 @@ def test_callback_view_handles_token_error(mock_get_client, client):
     response = client.get("/auth/sabia/callback/?code=bad-code&state=valid-state")
     assert response.status_code == 302
     assert response["Location"] == "/login/"
+
+
+@pytest.mark.django_db
+@patch("django_sabia_auth.views.get_oauth2_client")
+@patch("django_sabia_auth.views.authenticate")
+@patch("django_sabia_auth.views.login")
+def test_callback_view_authenticate_returns_none(mock_login, mock_auth, mock_get_client, client):
+    mock_oauth = MagicMock()
+    mock_oauth.exchange_code_for_token.return_value = {"access_token": "tok"}
+    mock_oauth.get_user_info.return_value = {"cpf": "12345678901"}
+    mock_get_client.return_value = mock_oauth
+    mock_auth.return_value = None
+
+    session = client.session
+    session["sabia_oauth2_state"] = "valid-state"
+    session.save()
+
+    response = client.get("/auth/sabia/callback/?code=code&state=valid-state")
+    assert response.status_code == 302
+    assert response["Location"] == "/login/"
+    mock_login.assert_not_called()
+
+
+@pytest.mark.django_db
+@patch("django_sabia_auth.views.get_oauth2_client")
+def test_callback_view_handles_user_info_error(mock_get_client, client):
+    from django_sabia_auth.exceptions import SabiaUserInfoError
+
+    mock_oauth = MagicMock()
+    mock_oauth.exchange_code_for_token.return_value = {"access_token": "tok"}
+    mock_oauth.get_user_info.side_effect = SabiaUserInfoError("Failed")
+    mock_get_client.return_value = mock_oauth
+
+    session = client.session
+    session["sabia_oauth2_state"] = "valid-state"
+    session.save()
+
+    response = client.get("/auth/sabia/callback/?code=code&state=valid-state")
+    assert response.status_code == 302
+    assert response["Location"] == "/login/"
+
+
+@pytest.mark.django_db
+@patch("django_sabia_auth.views.get_oauth2_client")
+@patch("django_sabia_auth.views.authenticate")
+@patch("django_sabia_auth.views.login")
+def test_callback_view_redirects_to_safe_next_url(mock_login, mock_auth, mock_get_client, client):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user = User.objects.create_user(username="12345678901", email="test@example.com")
+
+    mock_oauth = MagicMock()
+    mock_oauth.exchange_code_for_token.return_value = {"access_token": "tok"}
+    mock_oauth.get_user_info.return_value = {"cpf": "12345678901"}
+    mock_get_client.return_value = mock_oauth
+    mock_auth.return_value = user
+
+    session = client.session
+    session["sabia_oauth2_state"] = "valid-state"
+    session.save()
+
+    response = client.get("/auth/sabia/callback/?code=code&state=valid-state&next=/dashboard/")
+    assert response.status_code == 302
+    assert response["Location"] == "/dashboard/"
